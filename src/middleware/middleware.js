@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-exports.authentication = async function (req, res) {
+exports.authentication = async function (req, res , next) {
     try {
         let token = req.headers.authorization
         if (!token) return res.status(400).send({ status: false, message: "token is not given" })
