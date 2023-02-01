@@ -149,4 +149,18 @@ exports.loginUser = async function (req, res) {
       res.status(500).send({ status: false, message: error.message, });
   }
 };
-  
+
+exports.updateUser=async (req,res)=>{
+  try{
+  let userId = req.params.userId
+  let loggedUser = req.token.userId
+  if(userId !== loggedUser)  return res.status(403).send({status:false, message:"You are not authorized to perform this task"})
+  let data = req.body
+  const {fname,lname,email, profileImage,phone,password,address}= data
+  const updatedUser = await userModel.findOneAndUpdate({_id : userId},{...data}, {new:true})
+  return res.status(200).send({status:true, message:"User profile updated" ,data:updatedUser})
+  }
+  catch(err){
+    return res.status(500).send({status:false, message:err.message})
+  }
+}
