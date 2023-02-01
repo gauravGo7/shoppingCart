@@ -92,7 +92,7 @@ exports.createUser = async function (req, res) {
       
       const userData = {
         fname: fname, lname: lname, profileImage: url, email: email,
-        phone, password: hash, address: address
+        phone:phone, password: hash, address: address
       }
       
       const user = await userModel.create(userData);
