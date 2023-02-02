@@ -1,1 +1,4 @@
-const b=2
+const productModel = require("../models/productModel")
+
+
+
