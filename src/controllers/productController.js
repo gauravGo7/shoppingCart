@@ -41,7 +41,7 @@ if(Object.keys(req.query).length===0){
   return res.send("adarsh")
 }
 else{
-   // if(!query.size && !query.name && !query.priceGreaterThan && query.priceLessThan)  return res.status(400).send({status:false, messaage: "please give suitable query"})
+   if(!query.size && !query.name && !query.priceGreaterThan && query.priceLessThan)  return res.status(400).send({status:false, messaage: "please give suitable query"})
 
     // console.log("anjali")
     if(priceGreaterThan && priceLessThan){
