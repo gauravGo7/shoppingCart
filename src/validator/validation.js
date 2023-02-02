@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+
 const validName = function (name) {
     const nameRegex = /^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$/
     return nameRegex.test(name)
@@ -11,6 +13,10 @@ const validPhone = function (mobile) {
 const validEmail = function (email) {
     const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-][a-z]{1,4}$/
     return emailRegex.test(email)
+}
+
+const isValidBody = function (object) {
+    return Object.keys(object).length > 0;
 }
 
 const validValue = function (data) {
@@ -29,9 +35,13 @@ const validPassword = function (password) {
     return passwordRegex.test(password)
 }
 
+const validObjectId = function (objectId) {
+    return mongoose.Types.ObjectId.isValid(objectId)
+}
+
 const isValidImg = (img) => {
     const reg = /.+\.(?:(jpg|gif|png|jpeg|jfif))/;
     return reg.test(img);
   };
 
-module.exports = { validName, validPhone, validEmail, validValue, validPincode,isValidImg, validPassword}
+module.exports = { validName, validPhone, validEmail, validValue, validPincode,isValidImg, validPassword, validObjectId, isValidBody }
