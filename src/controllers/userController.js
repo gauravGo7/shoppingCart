@@ -2,6 +2,7 @@ const userModel = require("../models/userModel");
 const uploadFile = require("../aws/aws");
 const bcrypt = require("bcrypt");
 const {validPhone, validEmail, validValue, isValidImg, validName, validPincode, validPassword} = require("../validator/validation")
+const jwt = require("jsonwebtoken")
 
 exports.getProfile = async function (req, res) {
     try {
@@ -138,10 +139,11 @@ exports.loginUser = async function (req, res) {
       });
 
 
-      let payload = { userId: verifyUser["_id"], iat: Date.now(), };
+      let payload = { exp: Math.floor(Date.now()/1000) + 60,
+       iat: Date.now(),  userId: verifyUser["_id"], };
 
 
-      let token = jwt.sign(payload, "Group15", { expiresIn: "24h" });
+      let token = jwt.sign(payload, "Group15");
 
       res.setHeader("authorization", token);
       res.status(200).send({ status: true, message: "User login successfull", data: { userId: verifyUser["_id"], token } });
