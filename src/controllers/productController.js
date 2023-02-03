@@ -115,7 +115,7 @@ exports.updateProduct = async function (req, res) {
         if (!findProductId) return res.status(400).send({ status: false, messaage: "Product not found" })
 
         let data = req.body
-        let file = req.file
+        let file = req.files
 
         if (!isValidBody(data) && (typeof (file) == "undefined")) return res.status(400).send({ status: false, message: "Please Provide Some Data in the body" })
         let { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, style, availableSizes, installments } = data
@@ -166,17 +166,19 @@ exports.updateProduct = async function (req, res) {
         }
 
         if (availableSizes) {
-            let size = availableSizes.replace(/\s+/g, "").split(",")
+            let size = availableSizes.replace(/\s+/g, "")//k
             let arr = ["S", "XS", "M", "X", "L", "XXL", "XL"]
             let present
             for (let i = 0; i < size.length; i++) {
-                present = arr.includes(size[i])
+                present = arr.includes(size)
             }
             if (!present) {
                 return res.status(400).send({ status: false, message: "Enter a valid size S or XS or M or X or L or XXL or XL ", });
             }
 
             updatedObj['availableSizes'] = size
+            
+    
         }
 
         if (installments) {
