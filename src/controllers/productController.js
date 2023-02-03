@@ -1,24 +1,52 @@
 const { Query } = require("mongoose")
+const uploadFile = require("../aws/aws")
 const productModel = require("../models/productModel")
-const { validObjectId  } = require("../validator/validation")
+const { validObjectId, validName, isValidPrice, isValidNum } = require("../validator/validation")
+
 exports.createProduct = async (req, res) => {
 try {
-
     let data = req.body
-
+    let file = req.files
+ 
     let { title, description, price, currencyId, currencyFormat, isFreeShipping, style, availableSizes, installments, productImage } = data
+    
+  
+    if (Object.keys(data).length === 0) return res.status(400).send({ status: false, message: "No data found from body! You need to put the Mandatory Fields. " });
 
-    if (Object.keys(data).length == 0) return res.status(400).send({ status: false, message: "No data found from body! You need to put the Mandatory Fields. " });
+    if(!title) return res.status(400).send({status:false, messsage:"Title is mandatory"})
+    if(!validName(title))  return res.status(400).send({status:false, message: "Title can only contain alphabets"})
 
-    let obj = {}
+    if(!description) return res.status(400).send({status:false, messsage:"description is mandatory"})
+    if(!validName(description))  return res.status(400).send({status:false, message: "Desc can only contain alphabets"})
+
+    if(!price) return res.status(400).send({status:false, messsage:"Price is mandatory"})
+    if(!isValidPrice(price)) return res.status(400).send({status:false, message: "Price can only contain numbers"})
+
+    if(!currencyId) return res.status(400).send({status:false, messsage:"CurrencyId is mandatory"})
+
+    if(!currencyFormat) return res.status(400).send({status:false, messsage:"CurrencyFormat is mandatory"})
+
+    //if(!productImage) return res.status(400).send({status:false, messsage:"Product image is mandatory"})
+    if(!style) return res.status(400).send({status:false, messsage:"Style is mandatory"})
+    if(!validName(style))  return res.status(400).send({status:false, message: "style can only contain alphabets"})
+
+    if(!availableSizes) return res.status(400).send({status:false, messsage:"Size is mandatory"})
+
+    if(!installments) return res.status(400).send({status:false, messsage:"Installment is mandatory"})
+    if(!isValidNum(installments))  return res.status(400).send({status:false, message: "Installment can only contain numbers"})
+  
 
     const isDuplicateTitle = await productModel.findOne({ title: title });
     if (isDuplicateTitle) {
-        return res.status(400).send({ status: false, message: "Title is Already Exists, Please Enter Another Title!" });
+        return res.status(400).send({ status: false, message: "Title Already Exists, Please Enter Another Title!" });
     }
-
-    let createProduct = await productModel.create(obj)
-
+ 
+    let url = await uploadFile(file[0])
+    const productData={
+        title:title.trim(), description:description,price:price,currencyId:currencyId,currencyFormat: currencyFormat,
+        style:style, availableSizes:availableSizes, installments: installments,productImage:url
+    }
+    let createProduct = await productModel.create(productData)
     return res.status(201).send({ status: true, message: "Success", data: createProduct })
 
 } catch (error) {

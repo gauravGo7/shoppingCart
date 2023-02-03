@@ -44,4 +44,14 @@ const isValidImg = (img) => {
     return reg.test(img);
   };
 
-module.exports = { validName, validPhone, validEmail, validValue, validPincode,isValidImg, validPassword, validObjectId, isValidBody }
+const isValidPrice=(price)=> {
+   const reg = /^\d+(\.\d{1,2})?$/
+   return reg.test(price)
+}
+
+const isValidNum=(val)=> {
+    const reg =/^[0-9]$/;
+    return reg.test(val)
+}
+
+module.exports = { validName, validPhone, validEmail, validValue, validPincode,isValidImg, validPassword, validObjectId, isValidBody, isValidPrice, isValidNum}
