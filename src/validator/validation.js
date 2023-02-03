@@ -54,4 +54,16 @@ const isValidNum=(val)=> {
     return reg.test(val)
 }
 
-module.exports = { validName, validPhone, validEmail, validValue, validPincode,isValidImg, validPassword, validObjectId, isValidBody, isValidPrice, isValidNum}
+const isValidAvailableSizes = function (availablesizes)  {
+    for( i=0 ;i<availablesizes.length; i++){
+      if(!["S", "XS","M","X", "L","XXL", "XL"].includes(availablesizes[i])) return false
+    }
+    return true
+  };
+
+  const isValidProdName = (value) => { return (/^[A-Za-z]+|[A-Za-z]+\[0-9]+$/).test(value) }
+
+  const isValidInstallment = (value) => {
+    return (/^[0-9]+$/).test(value) }
+
+module.exports = { validName, validPhone, validEmail, validValue, validPincode,isValidImg, validPassword, validObjectId, isValidBody, isValidPrice, isValidNum,isValidAvailableSizes,isValidProdName,isValidInstallment}
