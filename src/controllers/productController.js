@@ -1,7 +1,7 @@
 const { Query } = require("mongoose")
 const uploadFile = require("../aws/aws")
 const productModel = require("../models/productModel")
-const { validObjectId, validName, isValidPrice, isValidNum } = require("../validator/validation")
+const { validObjectId, validName, isValidPrice, isValidNum, isValidImg } = require("../validator/validation")
 
 exports.createProduct = async (req, res) => {
     try {
@@ -16,8 +16,8 @@ exports.createProduct = async (req, res) => {
         if (!title) return res.status(400).send({ status: false, messsage: "Title is mandatory" })
         if (!validName(title)) return res.status(400).send({ status: false, message: "Title can only contain alphabets" })
 
-        if (!description) return res.status(400).send({ status: false, messsage: "description is mandatory" })
-        if (!validName(description)) return res.status(400).send({ status: false, message: "Desc can only contain alphabets" })
+        if (!description) return res.status(400).send({ status: false, messsage: "Description is mandatory" })
+        if (!validName(description)) return res.status(400).send({ status: false, message: "Description can only contain alphabets" })
 
         if (!price) return res.status(400).send({ status: false, messsage: "Price is mandatory" })
         if (!isValidPrice(price)) return res.status(400).send({ status: false, message: "Price can only contain numbers" })
@@ -115,6 +115,7 @@ exports.getProduct = async (req, res) => {
 }
 
 exports.updateProduct = async function(req,res){
+try{
     let productId = req.params.productId
     if(!validObjectId(productId)) return res.status(400).send({status:false, messaage: "Please Provide Valid Product Id"})
 
@@ -123,4 +124,79 @@ exports.updateProduct = async function(req,res){
 
     let data = req.body
     let file = req.file
-}
+
+    if(!isValidBody(data) && (typeof (file) == "undefined")) return res.status(400).send({ status: false, message: "Please Provide Some Data in the body"})
+    let { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, style, availableSizes, installments } = data
+
+    const updatedObj = {}
+    if(title){
+        data.title = data.title.toLowerCase()
+        if (!validValue(title)) return res.status(400).send({status: false, message: "Title should be in String format"})
+        let findtitle = await productModel.findOne({title: data.title});
+        if (findtitle) return res.status(400).send({status: false, message: "Title already exists"})
+        updatedObj.title = title
+      }
+  
+      if(description){
+        if (!validValue(description)) return res.status(400).send({status: false, message: "Description should be in String format"})
+        updatedObj.description = description
+      }
+  
+      if(price){
+        if (!isValidPrice.test(price)) return res.status(400).send({status: false, message: "Price should be in Number"})
+        updatedObj.price = price
+      }
+      if(currencyId){
+        if (currencyId != "INR") return res.status(400).send({ status: false, message: "Only 'INR' CurrencyId is allowed"})
+        updatedObj.currencyId = currencyId
+      }
+
+      if(currencyFormat){
+        if(currencyFormat != "₹") return res.status(400).send({ status: false, message: "Only '₹' Currency Symbol is allowed"})
+        updatedObj.currencyFormat = currencyFormat
+      }
+  
+      if(isFreeShipping){
+        if(isFreeShipping != "true" && isFreeShipping != "false"){
+          return res.status(400).send({ status: false, message: "isFreeShipping is only accepted in Boolean Value like true or false"})
+        }
+        updatedObj.isFreeShipping = isFreeShipping
+      }
+      if(file && file.length > 0){
+        if (!isValidImg(file[0].originalname)) return res.status(400).send({status: false, message: "Please provide image in jpg|gif|png|jpeg|jfif "})
+        let url = await uploadFile(file[0]);
+        updatedObj.productImage = url
+      }
+  
+      if(style){
+        if (!validValue(style)) return res.status(400).send({ status: false, message: "style should be in String format" })
+        updatedObj.style = style
+      }
+  
+      if(availableSizes){
+        let size = availableSizes.replace(/\s+/g, "").split(",")
+        let arr = ["S", "XS", "M", "X", "L", "XXL", "XL"]
+        let present
+        for(let i = 0; i < size.length; i++){
+          present = arr.includes(size[i])
+        }
+        if (!present) {
+          return res.status(400).send({ status: false, message: "Enter a valid size S or XS or M or X or L or XXL or XL ", });
+        }
+        
+        updatedObj['availableSizes'] = size
+      }
+  
+      if (installments) {
+        if (!isValidNum.test(installments)) return res.status(400).send({ status: false, message: "Installments should be in Number" })
+        updatedObj.installments = installments
+      }
+  
+      const productData = await productModel.findOneAndUpdate({ _id: productId }, { $set: updatedObj }, { new: true });
+  
+      return res.status(200).send({ status: true, message: "Success", data: productData });
+    }
+    catch (error) {
+      return res.status(500).send({ status: false, message: error.message });
+    }
+  }
