@@ -1,7 +1,7 @@
 const { Query } = require("mongoose")
 const uploadFile = require("../aws/aws")
 const productModel = require("../models/productModel")
-const { validObjectId, validValue, validName, isValidAvailableSizes, isValidPrice, isValidNum, isValidImg, isValidProdName, isValidInstallment } = require("../validator/validation")
+const { validObjectId, validValue, validName, isValidAvailableSizes,isValidBody, isValidPrice, isValidNum, isValidImg, isValidProdName, isValidInstallment } = require("../validator/validation")
 
 exports.createProduct = async (req, res) => {
 
@@ -215,19 +215,17 @@ exports.updateProduct = async function (req, res) {
         }
 
         if (availableSizes) {
-            let size = availableSizes.replace(/\s+/g, "")//k
+            let size = availableSizes.split(",")
             let arr = ["S", "XS", "M", "X", "L", "XXL", "XL"]
-            let present
+            
             for (let i = 0; i < size.length; i++) {
-                present = arr.includes(size)
+                size[i]=size[i].toUpperCase()
+                let present = arr.includes(size[i])
+                if (!present) {
+                    return res.status(400).send({ status: false, message: "ok Enter a valid size S or XS or M or X or L or XXL or XL ", });
+                }
             }
-            if (!present) {
-                return res.status(400).send({ status: false, message: "Enter a valid size S or XS or M or X or L or XXL or XL ", });
-            }
-
-            updatedObj['availableSizes'] = size
-
-
+            availableSizes=size
         }
 
         if (installments) {
@@ -235,7 +233,7 @@ exports.updateProduct = async function (req, res) {
             updatedObj.installments = installments
         }
 
-        const productData = await productModel.findOneAndUpdate({ _id: productId }, { $set: updatedObj }, { new: true });
+        const productData = await productModel.findOneAndUpdate({ _id: productId }, { $set: updatedObj,$push:{availableSizes:availableSizes}}, { new: true });
 
         return res.status(200).send({ status: true, message: "Success", data: productData });
     }

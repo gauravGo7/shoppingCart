@@ -16,7 +16,7 @@ router.put("/user/:userId/profile", authentication, updateUser)
 router.post("/products", createProduct)
 router.get("/products", getProduct)
 router.get("/products/:productId",getProductById)
-router.put("/products/productId", updateProduct)
+router.put("/products/:productId", updateProduct)
 router.delete("/products/:productId", deleteProduct)
 
 router.all("/*",(req,res)=>{
