@@ -64,7 +64,7 @@ exports.createProduct = async (req, res) => {
 
         //===================== Validation of AvailableSizes =====================//
         if (!validValue(availableSizes)) return res.status(400).send({ status: false, message: "Please enter Size!" });
-        availableSizes = availableSizes.split(',').map((item) => item.trim())
+        availableSizes = availableSizes.split(',').map((item) => item.trim().toUpperCase())
         for (let i = 0; i < availableSizes.length; i++) {
             if (!isValidAvailableSizes(availableSizes[i])) return res.status(400).send({ status: false, message: "Please mention valid Size!" });
         }
@@ -216,14 +216,9 @@ exports.updateProduct = async function (req, res) {
 
         if (availableSizes) {
             let size = availableSizes.split(",")
-            let arr = ["S", "XS", "M", "X", "L", "XXL", "XL"]
-            
             for (let i = 0; i < size.length; i++) {
                 size[i]=size[i].toUpperCase()
-                let present = arr.includes(size[i])
-                if (!present) {
-                    return res.status(400).send({ status: false, message: "ok Enter a valid size S or XS or M or X or L or XXL or XL ", });
-                }
+                if (!isValidAvailableSizes(size[i]))return res.status(400).send({ status: false, message: "Enter a valid size S or XS or M or X or L or XXL or XL "});
             }
             availableSizes=size
         }

@@ -43,7 +43,8 @@ const productSchema = new mongoose.Schema({
         type: [String],
         required: true,
         enum: ["S", "XS", "M", "X", "L", "XXL", "XL"],
-        trim:true
+        trim:true,
+        uppercase:true
     },
     installments: { type: Number , trim:true},
     deletedAt: {
