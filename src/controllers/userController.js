@@ -117,10 +117,11 @@ exports.loginUser = async function (req, res) {
     let verifyUser = await userModel.findOne({ email: email });
     if (!verifyUser) return res.status(400).send({ status: false, message: "Invalid Login Credential" });
 
+    
     //-------------------------------------------Decrypt the password and compare the password with user input------------------------------------------//
-    bcrypt.compare(password, verifyUser.password, function (error, verifyUser) {
-      if (error) return res.status(400).send({ status: false, message: error.message })
-    });
+    
+    const isCorrectPassword=bcrypt.compareSync(password, verifyUser.password)
+    if(! isCorrectPassword) return res.status(400).send({status:false,message:"Incorrect password"})
 
 
     let payload = {
@@ -143,7 +144,7 @@ exports.getProfile = async function (req, res) {
   try {
     const userId = req.params.userId;
 
-    if (!ObjectId.isValid(userId)) return res.status(400).send({ status: false, message: "Please provide valid user id" })
+    if (!validObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid user id" })
 
     const loggedUser = req.token.userId;
     if (userId != loggedUser) return res.status(403).send({ status: false, message: "you can't see other people's profile" })
