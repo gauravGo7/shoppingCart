@@ -3,7 +3,7 @@ const router=express.Router()
 const {createUser, updateUser, loginUser, getProfile} = require("../controllers/userController")
 const {createProduct, getProduct, getProductById, updateProduct, deleteProduct}= require("../controllers/productController")
 const {authentication} = require("../middleware/middleware")
-const { updateCart, getCart } = require('../controllers/cartController')
+const { updateCart, getCart, deleteCart } = require('../controllers/cartController')
 
 //==================================  users  ============================//
 
@@ -23,6 +23,7 @@ router.delete("/products/:productId", deleteProduct)
 //================================ cart ================================//
 router.get("/users/:userId/cart",getCart)
 router.put("/users/:userId/cart", updateCart)
+router.delete("/users/:userId/cart",authentication,deleteCart)
 
 router.all("/*",(req,res)=>{
     res.status(404).send({msg:"invalid http request"})

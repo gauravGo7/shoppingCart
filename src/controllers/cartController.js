@@ -1,7 +1,7 @@
 const userModel = require("../models/userModel")
 const productModel = require("../models/productModel")
 const cartModel = require("../models/cartModel")
-const jwt = require("jsonwebtoken")
+const { validObjectId } = require("../validator/validation")
 
 
 exports.updateCart = async function (req, res) {
@@ -82,7 +82,7 @@ exports.getCart = async function (req, res) {
         let userId = req.params.userId;
         
         if (userId) {
-            if (!isValidObjectId(userId))
+            if (!validObjectId(userId))
                 return res.status(400).send({ status: false, msg: "wrong userId" });
         }
         
@@ -101,5 +101,28 @@ exports.getCart = async function (req, res) {
         res.status(200).send({ status: true, message: "cart successfully", data: getData });
     } catch (err) {
         return res.status(500).send({ status: false, msg: err.message })
+    }
+}
+
+exports.deleteCart = async function (req, res) {
+    try {
+        const userId = req.params.userId;
+        if (!validObjectId(userId)) return res.status(400).send({ status: false, message: "Invalid user id" })
+
+        const userExist = await userModel.findById(userId)
+        if (!userExist) return res.status(404).send({ status: false, message: "No user exist with this user id" })
+
+        const updateObj = { items: [], totalPrice: 0, totalItems: 0 };
+
+        const cartExistAndUpdate = await cartModel.findOneAndUpdate({ userId: userId }, updateObj, { new: true })
+        if (!cartExistAndUpdate) return res.status(404).send({ status: false, message: "No cart exist of this user" })
+
+        const loggedUserId = req.token.userId;
+        if (userId != loggedUserId) return res.status(403).send({ status: false, message: "unauthorized access" })
+
+        return res.status(204).send({ status: true, message: "Success", data: cartExistAndUpdate })
+    }
+    catch(err){
+        return res.status(500).send({status:false,message:err.message})
     }
 }
