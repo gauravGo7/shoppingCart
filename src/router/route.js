@@ -3,7 +3,7 @@ const router=express.Router()
 const {createUser, updateUser, loginUser, getProfile} = require("../controllers/userController")
 const {createProduct, getProduct, getProductById, updateProduct, deleteProduct}= require("../controllers/productController")
 const {authentication} = require("../middleware/middleware")
-const { updateCart } = require('../controllers/cartController')
+const { updateCart, getCart } = require('../controllers/cartController')
 
 //==================================  users  ============================//
 
@@ -21,6 +21,7 @@ router.put("/products/:productId", updateProduct)
 router.delete("/products/:productId", deleteProduct)
 
 //================================ cart ================================//
+router.get("/users/:userId/cart",getCart)
 router.put("/users/:userId/cart", updateCart)
 
 router.all("/*",(req,res)=>{

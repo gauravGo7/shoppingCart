@@ -3,6 +3,7 @@ const productModel = require("../models/productModel")
 const cartModel = require("../models/cartModel")
 const jwt = require("jsonwebtoken")
 
+
 exports.updateCart = async function (req, res) {
     try {
 
@@ -73,5 +74,32 @@ exports.updateCart = async function (req, res) {
 
     } catch (error) {
         return res.status(500).send({ status: false, message: error.message })
+    }
+}
+
+exports.getCart = async function (req, res) {
+    try {
+        let userId = req.params.userId;
+        
+        if (userId) {
+            if (!isValidObjectId(userId))
+                return res.status(400).send({ status: false, msg: "wrong userId" });
+        }
+        
+        let checkUserId = await userModel.findOne({ _id: userId });
+        if (!checkUserId) {
+            return res.status(404).send({ status: false, message: "no user details found" });
+        }
+        
+        let getData = await cartModel.findOne({ userId });
+        if (getData.items.length == 0)
+            return res.status(400).send({ status: false, message: "items details not found" });
+        
+        if (!getData) {
+            return res.status(404).send({ status: false, message: "cart not found" });
+        }
+        res.status(200).send({ status: true, message: "cart successfully", data: getData });
+    } catch (err) {
+        return res.status(500).send({ status: false, msg: err.message })
     }
 }
