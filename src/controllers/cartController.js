@@ -3,6 +3,56 @@ const productModel = require("../models/productModel")
 const cartModel = require("../models/cartModel")
 const { validObjectId } = require("../validator/validation")
 
+exports.createCart= async(req,res)=>{
+    try{
+    let item=[]
+    let data={}
+    
+    let userId= req.params.userId
+    let loggedUser = req.token.userId
+    if(userId !== loggedUser ) return res.status(404).send({status:false, message:"User Not Found"})
+    
+    let productId = req.body.productId
+    let cartId =req.body.cartId
+    let product= await productModel.findOne({_id:productId})
+    let price = product.price
+    if(!product)  return res.status(404).send({status:false,message:"Product Not Found"})
+    let isCart = await cartModel.findOne({userId: userId})
+    
+    if(!isCart){
+    let products={productId:productId, quantity:1}
+    data.userId=userId
+    item.push(products)
+    data.items=item
+    data.totalPrice=price
+    data.totalItems=1
+    
+    let createdData = await cartModel.create(data)
+    let x= await cartModel.find({userId:userId}).select({"items._id":0})
+    return res.status(201).send(x)
+    }
+    else{
+      let cart= await cartModel.findOne({_id:cartId})
+      if(!cart) return res.status(404).send({status:false, message:"Please provide valid cartId"})
+    
+      let existingCart= await cartModel.findOne({_id:cartId, "items.productId":productId}).lean()
+      let totalPrice = cart.totalPrice +price
+      console.log(totalPrice)
+      let existingProduct=await cartModel.findOne({_id:cartId, "items.productId":productId}).lean()
+      if(!existingProduct){
+        let product={productId:productId, quantity:1}
+        existingCart= await cartModel.findByIdAndUpdate({_id:cartId}, {$push:{items:product}, $inc :{totalItems:1}, $set :{totalPrice:totalPrice}}, {new:true}).select({"items._id":0})
+        return res.send(existingCart)
+      }
+      existingCart= await cartModel.findOneAndUpdate({_id:cartId, "items.productId": productId},{$inc :{"items.$.quantity":1}, $set:{totalPrice:totalPrice}} ,{new:true}).select({"items._id":0})
+      res.send({status:true,message:"success" ,data:existingCart})
+      
+     }
+    }
+    catch(err){
+        return res.status(500).send({staus:false, message:err.message})
+    }
+     }
 
 exports.updateCart = async function (req, res) {
     try {
