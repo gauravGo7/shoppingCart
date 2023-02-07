@@ -35,17 +35,17 @@ exports.createProduct = async (req, res) => {
 
         //===================== Validation of CurrencyId =====================//
         if (currencyId || currencyId == '') {
-            if (!validator.isValidBody(currencyId)) return res.status(400).send({ status: false, message: "Please enter CurrencyId!" });
+            if (!isValidBody(currencyId)) return res.status(400).send({ status: false, message: "Please enter CurrencyId!" });
             if (currencyId != 'INR') return res.status(400).send({ status: false, message: "CurrencyId must be 'INR'!" });
             obj.currencyId = currencyId
         }
 
         //===================== Validation of CurrencyFormat =====================//
-        if (currencyFormat || currencyFormat == '') {
-            if (!validValue(currencyFormat)) return res.status(400).send({ status: false, message: "Please enter currencyFormat!" });
-            if (currencyFormat != '₹') return res.status(400).send({ status: false, message: "Currency Format must be '₹'!" });
-            obj.currencyFormat = currencyFormat
-        }
+        // if (currencyFormat || currencyFormat == '') {
+        //     if (!validValue(currencyFormat)) return res.status(400).send({ status: false, message: "Please enter currencyFormat!" });
+        //     if (currencyFormat != '₹') return res.status(400).send({ status: false, message: "Currency Format must be '₹'!" });
+        //     obj.currencyFormat = currencyFormat
+        // }
 
         //===================== Validation of isFreeShipping =====================//
         if (isFreeShipping) {
@@ -57,7 +57,7 @@ exports.createProduct = async (req, res) => {
 
         //===================== Validation of Style =====================//
         if (style) {
-            if (validValue(style)) return res.status(400).send({ status: false, message: "Please enter style!" });
+            if (!validValue(style)) return res.status(400).send({ status: false, message: "Please enter style!" });
             if (!validName(style)) return res.status(400).send({ status: false, message: "Please valid style!" });
             obj.style = style
         }
@@ -184,7 +184,7 @@ exports.updateProduct = async function (req, res) {
         }
 
         if (price) {
-            if (!isValidPrice.test(price)) return res.status(400).send({ status: false, message: "Price should be in Number" })
+            if (!isValidPrice(price)) return res.status(400).send({ status: false, message: "Price should be in Number" })
             updatedObj.price = price
         }
         if (currencyId) {

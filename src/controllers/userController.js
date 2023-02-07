@@ -125,7 +125,7 @@ exports.loginUser = async function (req, res) {
 
 
     let payload = {
-      exp: Math.floor(Date.now() / 1000) + 60,
+      exp: Math.floor(Date.now() / 1000) + 6000,
       iat: Date.now(), userId: verifyUser["_id"],
     };
 
@@ -168,14 +168,14 @@ exports.updateUser = async (req, res) => {
     let loggedUser = req.token.userId
     if (userId !== loggedUser) return res.status(403).send({ status: false, message: "You are not authorized to perform this task" })
 
-    const data = req.body;
-    const file = req.files
+    let data = req.body;
+    let file = req.files
 
     if (!isValidBody(data) && (typeof (file) == "undefined")) return res.status(400).send({ status: false, message: "Please give some data" })
 
-    const { fname, lname, email, phone, password, address } = data
+    let { fname, lname, email, phone, password, address } = data
 
-    const newobj = {}
+    let newobj = {}
     if (fname) {
       if (!validName(fname.trim())) return res.status(400).send({ status: false, message: "FirstName should be in alphabets only" })
       newobj.fname = fname

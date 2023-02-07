@@ -21,9 +21,9 @@ router.put("/products/:productId", updateProduct)
 router.delete("/products/:productId", deleteProduct)
 
 //================================ cart ================================//
-router.post("/users/:userId/cart",createCart)
-router.get("/users/:userId/cart",getCart)
-router.put("/users/:userId/cart", updateCart)
+router.post("/users/:userId/cart",authentication,createCart)
+router.get("/users/:userId/cart",authentication,getCart)
+router.put("/users/:userId/cart", authentication,updateCart)
 router.delete("/users/:userId/cart",authentication,deleteCart)
 
 router.all("/*",(req,res)=>{

@@ -29,7 +29,7 @@ exports.createCart= async(req,res)=>{
     
     let createdData = await cartModel.create(data)
     let x= await cartModel.find({userId:userId}).select({"items._id":0})
-    return res.status(201).send(x)
+    return res.status(201).send({status:true,message:"Success",data:x})
     }
     else{
       let cart= await cartModel.findOne({_id:cartId})
@@ -37,7 +37,6 @@ exports.createCart= async(req,res)=>{
     
       let existingCart= await cartModel.findOne({_id:cartId, "items.productId":productId}).lean()
       let totalPrice = cart.totalPrice +price
-      console.log(totalPrice)
       let existingProduct=await cartModel.findOne({_id:cartId, "items.productId":productId}).lean()
       if(!existingProduct){
         let product={productId:productId, quantity:1}
@@ -45,7 +44,7 @@ exports.createCart= async(req,res)=>{
         return res.send(existingCart)
       }
       existingCart= await cartModel.findOneAndUpdate({_id:cartId, "items.productId": productId},{$inc :{"items.$.quantity":1}, $set:{totalPrice:totalPrice}} ,{new:true}).select({"items._id":0})
-      res.send({status:true,message:"success" ,data:existingCart})
+      res.status(201).send({status:true,message:"Success" ,data:existingCart})
       
      }
     }
