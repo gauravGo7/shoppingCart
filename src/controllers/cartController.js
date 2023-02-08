@@ -167,6 +167,9 @@ exports.deleteCart = async function (req, res) {
         const userId = req.params.userId;
         if (!validObjectId(userId)) return res.status(400).send({ status: false, message: "Invalid user id" })
 
+        const loggedUserId = req.token.userId;
+        if (userId != loggedUserId) return res.status(403).send({ status: false, message: "unauthorized access" })
+        
         const userExist = await userModel.findById(userId)
         if (!userExist) return res.status(404).send({ status: false, message: "No user exist with this user id" })
 
@@ -175,8 +178,6 @@ exports.deleteCart = async function (req, res) {
         const cartExistAndUpdate = await cartModel.findOneAndUpdate({ userId: userId }, updateObj, { new: true })
         if (!cartExistAndUpdate) return res.status(404).send({ status: false, message: "No cart exist of this user" })
 
-        const loggedUserId = req.token.userId;
-        if (userId != loggedUserId) return res.status(403).send({ status: false, message: "unauthorized access" })
 
         return res.status(204).send({ status: true, message: "Success", data: cartExistAndUpdate })
     }

@@ -33,9 +33,50 @@ exports.createOrder = async function (req, res) {
         const order = await orderModel.create(obj)
         await cartModel.findOneAndUpdate({ userId: userId }, { $set: { items: [], totalItems: 0, totalPrice: 0 } }, { new: true })
 
-        res.status(201).send({ status: true, message: "Success", data: order })
-    } 
+        res.status(200).send({ status: true, message: "Success", data: order })
+    }
     catch (error) {
         res.status(500).send({ status: false, message: error.message })
+    }
+}
+
+exports.updateOrder = async function (req, res) {
+    try {
+        const userId = req.params.userId;
+        if (!validObjectId(userId)) return res.status(400).send({ status: false, message: "Invalid user id" })
+
+        const loggedUserId = req.token.userId;
+        if (userId != loggedUserId) return res.status(403).send({ status: false, message: "unauthorized access" })
+
+        let { orderId, cancellable, status } = req.body;
+        if (!orderId) return res.status(400).send({ status: false, message: "please provide orderId in request body" })
+        if (!validObjectId(orderId)) return res.status(400).send({ status: false, message: "Invalid orderId" })
+
+        const orderData = await orderModel.findById(orderId)
+        if (!orderData) return res.status(400).send({ status: false, message: "No active order found by this orderId" })
+        if (orderData.status == "cancelled") return res.status(200).send({ status: true, message: "Your order has been cancelled" })
+
+        if (orderData.userId != userId) return res.status(400).send({ status: false, message: "The order is not relevant to this user" })
+
+        if ((cancellable === "undefined") && !status) {
+            return res.status(400).send({ status: false, message: "Atleast one field is required among status and cancellable" })
+        }
+        let updateObj = {}
+        if (cancellable == "true" || cancellable == "false") {
+            updateObj.cancellable = (cancellable == "true" ? true : false)
+        }
+        if (status) {
+            status = status.trim().toLowerCase()
+            if (!["pending", "completed", "cancelled"].includes(status)) return res.status(400).send({ status: false, message: "please provide valid status" })
+            if (orderData.cancellable == false && status == "cancelled") return res.status(400).send({ status: false, message: "Your order can't be cancelled" })
+
+            updateObj.status = status;
+
+        }
+        let updateOrder = await orderModel.findOneAndUpdate({ _id: orderId }, updateObj, { new: true })
+        return res.status(200).send({ status: true, message: "Success", data: updateOrder })
+    }
+    catch(err){
+        return res.status(500).send({status:false,message:err.message})
     }
 }
