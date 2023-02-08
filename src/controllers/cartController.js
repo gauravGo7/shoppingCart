@@ -149,14 +149,11 @@ exports.getCart = async function (req, res) {
             return res.status(404).send({ status: false, message: "no user details found" });
         }
 
-        let getData = await cartModel.findOne({ userId });
-        if (getData.items.length == 0)
-            return res.status(400).send({ status: false, message: "items details not found" });
-
+        let getData = await cartModel.findOne({ userId:userId });
         if (!getData) {
             return res.status(404).send({ status: false, message: "cart not found" });
         }
-        res.status(200).send({ status: true, message: "cart successfully", data: getData });
+        res.status(200).send({ status: true, message: "Success", data: getData });
     } catch (err) {
         return res.status(500).send({ status: false, msg: err.message })
     }
