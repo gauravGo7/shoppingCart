@@ -25,6 +25,7 @@ const productSchema = new mongoose.Schema({
     },
     currencyFormat: {
         type: String,
+        default:"₹",
         required: true,
         trim:true
     },
