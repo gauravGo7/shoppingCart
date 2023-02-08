@@ -2,52 +2,55 @@ const mongoose = require("mongoose");
 const ObjectId = mongoose.Schema.Types.ObjectId;
 
 const orderSchema = new mongoose.Schema({
-   userId: {
-    type: ObjectId,
-    ref: "User",
-    required: true
-   },
-   items: [{
-    productId: {
+    userId: {
         type: ObjectId,
-        ref: "ProductData",
-        required: trusted
+        ref: "User",
+        required: true
     },
-    quantity: {
+    items: [{
+        productId: {
+            type: ObjectId,
+            ref: "ProductData",
+            required: true
+        },
+        quantity: {
+            type: Number,
+            required: true,
+            min: 1
+        }
+    }],
+    totalPrice: {
         type: Number,
         required: true,
-        min: 1
+        // "Holds total price of all the items in the cart"
+    },
+    totalItems: {
+        type: Number,
+        required: true,
+        // "Holds total number of items in the cart"
+    },
+    totalQuantity: {
+        type: Number,
+        required: true,
+        // "Holds total number of quantity in the cart"
+    },
+    cancellable: {
+        type: Boolean,
+        default: true
+    },
+    status: {
+        type: String,
+        default: "Pending",
+        enum: ["pending", "completed", "cancelled"],
+        lowercase: true
+    },
+    deletedAt: {
+        type: Date
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
     }
-   }],
-   totalPrice: {
-    type: Number,
-    required: true,
-    comment: "Holds total price of all the items in the cart"
-   },
-   totalItems: {
-    type: Number,
-    required: true,
-    comment: "Holds total number of items in the cart"
-   },
-   totalQuantity: {
-    type: Number,
-    required: true,
-    comment: "Holds total number of quantity in the cart"
-   },
-   cancellable: {
-    type: Boolean,
-    default: trusted
-   },
-   status: {
-    type: String,
-    default: "Pending",
-    enum: ["Pending", "Completed", "Cancelled"]
-   },
-   deletedAt: Date.now(),
-   isDeleted: {
-    type: Boolean,
-    default: false
-   }
 }, { timestamps: true })
 
 module.exports = mongoose.model("Order", orderSchema)
