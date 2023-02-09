@@ -162,6 +162,7 @@ exports.getProfile = async function (req, res) {
 
 exports.updateUser = async (req, res) => {
   try {
+    
     let userId = req.params.userId
     if (!validObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide a valid user id" })
 

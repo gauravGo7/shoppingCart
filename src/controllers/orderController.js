@@ -1,10 +1,17 @@
 const cartModel = require('../models/cartModel')
 const orderModel = require('../models/orderModel')
+const userModel = require('../models/userModel')
 const { validObjectId } = require('../validator/validation')
 
 exports.createOrder = async function (req, res) {
     try {
         const userId = req.params.userId
+        if(!validObjectId(userId)) return res.status(400).send({ status: false, message: "Invalid user id" })
+        const userExist=await userModel.findById(userId)
+        if(!userExist) return res.status(404).send({status:false,message:"user does not exist with the userId"})
+
+        const loggedUserId = req.token.userId;
+        if (userId != loggedUserId) return res.status(403).send({ status: false, message: "unauthorized access" })
         const data = req.body
         if (Object.keys(data).length == 0) return res.status(400).send({ status: false, message: "Please Provide Some Data for create an Order" })
 
@@ -31,9 +38,11 @@ exports.createOrder = async function (req, res) {
         }
 
         const order = await orderModel.create(obj)
+        const orderId=order._id;
+        const resObj=await orderModel.findById(orderId).select({__v:0})
         await cartModel.findOneAndUpdate({ userId: userId }, { $set: { items: [], totalItems: 0, totalPrice: 0 } }, { new: true })
 
-        res.status(200).send({ status: true, message: "Success", data: order })
+        res.status(200).send({ status: true, message: "Success", data: resObj })
     }
     catch (error) {
         res.status(500).send({ status: false, message: error.message })
@@ -44,6 +53,8 @@ exports.updateOrder = async function (req, res) {
     try {
         const userId = req.params.userId;
         if (!validObjectId(userId)) return res.status(400).send({ status: false, message: "Invalid user id" })
+        const userExist=await userModel.findById(userId)
+        if(!userExist) return res.status(404).send({status:false,message:"user does not exist with the userId"})
 
         const loggedUserId = req.token.userId;
         if (userId != loggedUserId) return res.status(403).send({ status: false, message: "unauthorized access" })
@@ -73,7 +84,7 @@ exports.updateOrder = async function (req, res) {
             updateObj.status = status;
 
         }
-        let updateOrder = await orderModel.findOneAndUpdate({ _id: orderId }, updateObj, { new: true })
+        let updateOrder = await orderModel.findOneAndUpdate({ _id: orderId }, updateObj, { new: true }).select({__v:0})
         return res.status(200).send({ status: true, message: "Success", data: updateOrder })
     }
     catch(err){

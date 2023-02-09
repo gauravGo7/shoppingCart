@@ -125,30 +125,45 @@ exports.getProduct = async (req, res) => {
     try {
         let query = req.query
 
-        let { size, name, priceGreaterThan, priceLessThan } = query
+        let { size, name, priceGreaterThan, priceLessThan,priceSort } = query
         let queryObj = {};
 
         queryObj.isDeleted = false;
 
         if (size) {
-            queryObj.availableSizes = size;
+            queryObj.availableSizes = size.toUpperCase();
+            if (!isValidAvailableSizes(queryObj.availableSizes)) return res.status(400).send({ status: false, message: "Please provide valid Size!" });
         }
         if (name) {
             queryObj.title = { "$regex": name, "$options": "i" }
         }
         if (priceGreaterThan && priceLessThan) {
+            let price=(Number(priceGreaterThan) && Number(priceLessThan))
+            if(!price) return res.status(400).send({status:false,message:"please provide number in priceGreaterThan and priceLessThan"})
             queryObj.price = { $gt: priceGreaterThan, $lt: priceLessThan }
         }
         else if (priceGreaterThan) {
+            let price=Number(priceGreaterThan)
+            if(!price) return res.status(400).send({status:false,message:"please provide number in priceGreaterThan"})
             queryObj.price = { $gt: priceGreaterThan }
         }
         else if (priceLessThan) {
+            let price=Number(priceLessThan)
+            if(!price) return res.status(400).send({status:false,message:"please provide number in priceLessThan"})
             queryObj.price = { $lt: priceLessThan }
         }
 
-        let productData = await productModel.find(queryObj).sort({ price: 1 })
+        if(priceSort){
+            priceSort=Number(priceSort);
+            if(!priceSort ||(priceSort!=1 && priceSort!=-1)) return res.status(400).send({status:false,message:"please provide valid priceShort 1 or -1"})
+        }
+        else{
+            priceSort=1
+        }
+
+        let productData = await productModel.find(queryObj).sort({ price: priceSort})
         if (productData.length == 0) return res.status(404).send({ status: false, message: "No product data found" })
-        return res.status(200).send({ status: true, msg: "Success", data: productData })
+        return res.status(200).send({ status: true, message: "Success", data: productData })
     }
     catch (err) {
         return res.status(500).send({ status: false, message: err.message });
@@ -172,6 +187,7 @@ exports.updateProduct = async function (req, res) {
         const updatedObj = {}
         if (title) {
             data.title = data.title.toLowerCase()
+            if(!validName(title)) return res.status(400).send({status:false,message:"please provide valid title"})
             if (!validValue(title)) return res.status(400).send({ status: false, message: "Title should be in String format" })
             let findtitle = await productModel.findOne({ title: data.title });
             if (findtitle) return res.status(400).send({ status: false, message: "Title already exists" })
@@ -224,7 +240,7 @@ exports.updateProduct = async function (req, res) {
         }
 
         if (installments) {
-            if (!isValidNum.test(installments)) return res.status(400).send({ status: false, message: "Installments should be in Number" })
+            if (!isValidNum(installments)) return res.status(400).send({ status: false, message: "Installments should be in Number" })
             updatedObj.installments = installments
         }
 

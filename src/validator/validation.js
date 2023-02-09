@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const validName = function (name) {
-    const nameRegex = /^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$/
+    const nameRegex = /^[a-z ,.'-]+$/i
     return nameRegex.test(name)
 }
 
@@ -55,10 +55,8 @@ const isValidNum=(val)=> {
 }
 
 const isValidAvailableSizes = function (availablesizes)  {
-    for( i=0 ;i<availablesizes.length; i++){
-      if(!["S", "XS","M","X", "L","XXL", "XL"].includes(availablesizes[i])) return false
-    }
-    return true
+      if(!["S", "XS","M","X", "L","XXL", "XL"].includes(availablesizes)) return false
+      return true
   };
 
   const isValidProdName = (value) => { return (/^[A-Za-z]+|[A-Za-z]+\[0-9]+$/).test(value) }

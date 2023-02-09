@@ -10,18 +10,24 @@ exports.createCart = async (req, res) => {
         let data = {}
 
         let userId = req.params.userId
-        if(!validObjectId(userId)) return res.status(400).send({status:false,message:"Please provide valid user id 😥"})
+        if (!validObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid user id 😥" })
+
+        const userExist = await userModel.findById(userId)
+        if (!userExist) return res.status(404).send({ status: false, message: "user does not exist with the userId" })
+
         let loggedUser = req.token.userId
         if (userId !== loggedUser) return res.status(403).send({ status: false, message: "Unauthorized access" })
 
         let productId = req.body.productId
-        if(!productId) return res.status(400).send({status:false,message:"please provide productId in body"})
-        if(!validObjectId(productId)) return res.status(400).send({status:false,message:"Please provide valid product id😬"})
+        if (!productId) return res.status(400).send({ status: false, message: "please provide productId in body" })
+        if (!validObjectId(productId)) return res.status(400).send({ status: false, message: "Please provide valid product id😬" })
         let cartId = req.body.cartId
-        if(!validObjectId(cartId)) return res.status(400).send({status:false,message:"Please provide valid cart id 😬"})
+        if (cartId) {
+            if (!validObjectId(cartId)) return res.status(400).send({ status: false, message: "Please provide valid cart id 😬" })
+        }
         let product = await productModel.findOne({ _id: productId })
-        let price = product.price
         if (!product) return res.status(404).send({ status: false, message: "Product Not Found" })
+        let price = product.price
         let isCart = await cartModel.findOne({ userId: userId })
 
         if (!isCart) {
@@ -37,7 +43,9 @@ exports.createCart = async (req, res) => {
             return res.status(201).send({ status: true, message: "Success", data: x })
         }
         else {
-            let cart = await cartModel.findOne({ _id: cartId})
+
+            if (!cartId) return res.status(400).send({ status: false, message: "this user have cartId so please provide the cartId" })
+            let cart = await cartModel.findOne({ _id: cartId })
             if (!cart) return res.status(404).send({ status: false, message: "Please provide valid cartId" })
 
             let existingCart = await cartModel.findOne({ _id: cartId, "items.productId": productId }).lean()
@@ -62,7 +70,10 @@ exports.updateCart = async function (req, res) {
     try {
 
         const userId = req.params.userId
-        if(!validObjectId(userId)) return res.status(400).send({status:false,message:"Please provide valid user id 🥵"})
+        if (!validObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid user id 🥵" })
+        const userExist = await userModel.findById(userId)
+        if (!userExist) return res.status(404).send({ status: false, message: "user does not exist with the userId" })
+
         let loggedUser = req.token.userId
         if (userId !== loggedUser) return res.status(403).send({ status: false, message: "Unauthorized access" })
         const data = req.body
@@ -79,7 +90,7 @@ exports.updateCart = async function (req, res) {
         const cartCheck = await cartModel.findById({ _id: cartId })
         if (!cartCheck) return res.status(404).send({ status: false, message: "cartId not found" })
 
-        if(cartCheck.userId != userId) return res.status(400).send({status:false,message:"card id is not relevant to the user"})
+        if (cartCheck.userId != userId) return res.status(400).send({ status: false, message: "card id is not relevant to the user" })
 
         const checkProduct = await productModel.findOne({ _id: productId, isDeleted: false })
         if (!checkProduct) return res.status(404).send({ status: false, message: "productId not found" })
@@ -95,8 +106,11 @@ exports.updateCart = async function (req, res) {
                     const totalprice = cartCheck.totalPrice - ProductPrice
                     cartCheck.items.splice(i, 1)
                     const totalItems = cartCheck.totalItems - 1
-                    const finalPriceAndUpdate = await cartModel.findOneAndUpdate({ userId: userId }, { items: cartCheck.items, totalPrice: totalprice, totalItems: totalItems }, { new: true }).select({ 'items._id': 0 })
+                    const finalPriceAndUpdate = await cartModel.findOneAndUpdate({ userId: userId }, { items: cartCheck.items, totalPrice: totalprice, totalItems: totalItems }, { new: true }).select({ 'items._id': 0,__v:0 })
                     return res.status(200).send({ status: true, message: "Success", data: finalPriceAndUpdate });
+                }
+                else {
+                    return res.status(404).send({ status: false, message: "product does not exist in the cart" })
                 }
             }
 
@@ -112,7 +126,7 @@ exports.updateCart = async function (req, res) {
                         const totalPrice = cartCheck.totalPrice - ProductPrice
                         cartCheck.items.splice(i, 1)
                         const totalItems = cartCheck.totalItems - 1
-                        const finalPriceUpdate = await cartModel.findOneAndUpdate({ userId: userId }, { items: cartCheck.items, totalPrice: totalPrice, totalItems: totalItems }, { new: true }).select({ 'items._id': 0 })
+                        const finalPriceUpdate = await cartModel.findOneAndUpdate({ userId: userId }, { items: cartCheck.items, totalPrice: totalPrice, totalItems: totalItems }, { new: true }).select({ 'items._id': 0,__v:0 })
                         return res.status(200).send({ status: true, message: "Success", data: finalPriceUpdate });
 
                     } else {
@@ -121,7 +135,7 @@ exports.updateCart = async function (req, res) {
                         const totalItems = cartCheck.totalItems
                         cartCheck.items[i].quantity = quantityUpdate
 
-                        const finalPriceAndUpdate = await cartModel.findOneAndUpdate({ userId: userId }, { items: cartCheck.items, totalPrice: totalPrice, totalItems: totalItems }, { new: true }).select({ 'items._id': 0 })
+                        const finalPriceAndUpdate = await cartModel.findOneAndUpdate({ userId: userId }, { items: cartCheck.items, totalPrice: totalPrice, totalItems: totalItems }, { new: true }).select({ 'items._id': 0,__v:0  })
                         return res.status(200).send({ status: true, message: "Success", data: finalPriceAndUpdate });
                     }
                 }
@@ -139,11 +153,11 @@ exports.updateCart = async function (req, res) {
 exports.getCart = async function (req, res) {
     try {
         let userId = req.params.userId;
+        if (!validObjectId(userId)) return res.status(400).send({ status: false, msg: "wrong userId" });
 
-        if (userId) {
-            if (!validObjectId(userId))
-                return res.status(400).send({ status: false, msg: "wrong userId" });
-        }
+        const userExist = await userModel.findById(userId)
+        if (!userExist) return res.status(404).send({ status: false, message: "user does not exist with the userId" })
+
         let loggedUser = req.token.userId
         if (userId !== loggedUser) return res.status(403).send({ status: false, message: "Unauthorized access" })
 
@@ -152,7 +166,7 @@ exports.getCart = async function (req, res) {
             return res.status(404).send({ status: false, message: "no user details found" });
         }
 
-        let getData = await cartModel.findOne({ userId:userId });
+        let getData = await cartModel.findOne({ userId: userId }).select({__v:0});
         if (!getData) {
             return res.status(404).send({ status: false, message: "cart not found" });
         }
@@ -167,11 +181,11 @@ exports.deleteCart = async function (req, res) {
         const userId = req.params.userId;
         if (!validObjectId(userId)) return res.status(400).send({ status: false, message: "Invalid user id" })
 
-        const loggedUserId = req.token.userId;
-        if (userId != loggedUserId) return res.status(403).send({ status: false, message: "unauthorized access" })
-        
         const userExist = await userModel.findById(userId)
         if (!userExist) return res.status(404).send({ status: false, message: "No user exist with this user id" })
+
+        const loggedUserId = req.token.userId;
+        if (userId != loggedUserId) return res.status(403).send({ status: false, message: "unauthorized access" })
 
         const updateObj = { items: [], totalPrice: 0, totalItems: 0 };
 
