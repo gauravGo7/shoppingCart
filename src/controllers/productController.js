@@ -175,7 +175,7 @@ exports.updateProduct = async function (req, res) {
         let productId = req.params.productId
         if (!validObjectId(productId)) return res.status(400).send({ status: false, messaage: "Please Provide Valid Product Id" })
 
-        const findProductId = await productModel.findById({ _id: productId, isDeleted: false })
+        const findProductId = await productModel.findOne({ _id: productId, isDeleted: false })
         if (!findProductId) return res.status(400).send({ status: false, messaage: "Product not found" })
 
         let data = req.body

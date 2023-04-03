@@ -29,4 +29,4 @@ let uploadFile = async (file) =>{
 }
 
 
-module.exports = uploadFile
+module.exports= uploadFile

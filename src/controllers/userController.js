@@ -28,11 +28,11 @@ exports.createUser = async function (req, res) {
     if (!validName(lname.trim())) return res.status(400).send({ status: false, message: "LastName should be in alphabets only" })
 
     if (!validEmail(email)) return res.status(400).send({ status: false, message: "Please provide correct email" })
-    let findEmail = await userModel.findOne({ email })
+    let findEmail = await userModel.findOne({ email:email })
     if (findEmail) return res.status(400).send({ status: false, message: "User with this email already exists" })
 
     if (!validPhone(phone)) return res.status(400).send({ status: false, message: "Please provide correct phone number" })
-    let findPhone = await userModel.findOne({ phone });
+    let findPhone = await userModel.findOne({ phone:phone });
     if (findPhone) return res.status(400).send({ status: false, message: "User with this phone number already exists" })
 
     if (!validPassword(password)) return res.status(400).send({ status: false, message: "Password Should be (8-15) in length with one upperCase, special character and number" })

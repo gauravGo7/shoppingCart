@@ -162,9 +162,9 @@ exports.getCart = async function (req, res) {
         if (userId !== loggedUser) return res.status(403).send({ status: false, message: "Unauthorized access" })
 
         let checkUserId = await userModel.findOne({ _id: userId });
-        if (!checkUserId) {
-            return res.status(404).send({ status: false, message: "no user details found" });
-        }
+        // if (!checkUserId) {
+        //     return res.status(404).send({ status: false, message: "no user details found" });
+        // }
 
         let getData = await cartModel.findOne({ userId: userId }).select({__v:0});
         if (!getData) {
